@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Earthquake Predictor - Nebula</title>
+
+    <link rel="stylesheet" href="lib/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="lib/css/bootstrap-social.css">
+    <link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="lib/js/jquery-2.1.4.min.js"></script>
+    <script src="lib/js/bootstrap.min.js"></script>
+
+    <script>
+        document.onready = function () {
+
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip()
+
+            $(document).ajaxStop(function () {
+                $("#loading").hide();
+            });
+            $(document).ajaxStart(function () {
+                $("#loading").show();
+            });
+
+        };
+    </script>
+
+</head>
+
+<body>
+
+    <div class='message-toast' style='display:none'>Training complete</div>
+
+    <img src="loading2.gif" id="spinner" alt="loading..." style="display: none;" />
+
+    <div id="loading" class="container">
+
+        <span class="glyphicon glyphicon-refresh gly-ani" style="font-size:40px;"></span>
+
+    </div>
+    <div id="training-overlay">
+        <div id="training"></div>
+    </div>
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Nebula's Earthquake Predictor</a>
+            </div>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li data-toggle="tooltip" data-placement="left" title="Re-train the Neural Network"><a href="#" onclick="retrainModel()"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Re-train Network</a></li>
+                <!--<li data-toggle="tooltip" data-placement="left" title="Subscribe to get Alerts"><a href="#"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Subscribe</a></li>-->
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+
+    <div id="map"></div>
+
+    <div class="modal fade bs-example-modal-lg prediction-modal" tabindex="-1" role="dialog" id="prediction-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="text-align: center;">Maximum Magnitude within the next 5 days</h4>
+                </div>
+                <div class="modal-body">
+                    <h2 style="text-align:center;" class="place-name"></h2>
+                    <h1 class="magnitude">4.1</h1>
+                    <div class="progress">
+                        <div id="prediction-accuracy" class="progress-bar" role="progressbar" style="width: 60%;"></div>
+                    </div>
+                    <p style="text-align: center;">
+                        <span id="accuracy">60</span>% accuracy
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-social-icon btn-twitter">
+                        <span class="fa fa-twitter"></span>
+                    </a>
+                    <a class="btn btn-social-icon btn-facebook" data-dismiss="modal" onclick="openFBModal()">
+                        <span class="fa fa-facebook"></span>
+                    </a>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+
+
+
+    <div class="modal fade bs-example-modal-sm retrain-modal" tabindex="-1" role="dialog" id="retrain-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="text-align: center;">Re-train Neural Network</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <select id="area" class="form-control">
+                            <option>Santiago</option>
+                            <option>Talca</option>
+                            <option>Valparaiso</option>
+                            <option>Pichilemu</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="number" class="form-control" id="epochs" min="1" step="1" placeholder="Training Epochs">
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="trainModel()"> Retrain </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+
+
+
+    <div class="modal fade bs-example-modal-sm post-fb-modal" tabindex="-1" role="dialog" id="post-fb-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="text-align: center;">Share on Facebook</h4>
+                </div>
+                <div class="modal-body">
+                    
+                    <textarea class="form-control" rows="5" id="fbMessage">
+                    </textarea>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="postOnFB()"> Share </button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+
+
+
+    <!--<div id="snackbar">Training complete</div>-->
+    
+
+</body>
+
+<script src="functions.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCVhL4sGXIseGk1cOX9R25XZpROtTVquJk&callback=initMap" async
+    defer></script>
+
+</html>
